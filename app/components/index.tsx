@@ -20,6 +20,7 @@ import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import Loading from '@/app/components/base/loading'
 import { replaceVarWithValues, userInputsFormToPromptVariables } from '@/utils/prompt'
 import AppUnavailable from '@/app/components/app-unavailable'
+import { GristVariables } from './grist-variables'
 import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
 import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
@@ -673,6 +674,7 @@ const Main: FC<IMainProps> = () => {
             hasSetInputs && (
               <div className='relative grow h-[200px] pc:w-[794px] max-w-full mobile:w-full pb-[66px] mx-auto mb-3.5 overflow-hidden'>
                 <div className='h-full overflow-y-auto' ref={chatListDomRef}>
+                  <GristVariables />
                   {(gristRecord || gristRecords.length > 0) && (
                     <div className="grist-data-preview p-4 mb-4 bg-gray-50 border-b">
                       <h3 className="text-sm font-semibold mb-2">Grist Data</h3>

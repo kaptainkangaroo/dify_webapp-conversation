@@ -1,0 +1,26 @@
+.grist-variables {
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: #f9fafb;
+    margin-bottom: 1rem;
+}
+
+.grist-variables h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #111827;
+}
+
+.variables-container {
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
+}
+
+.variables-container p {
+    color: #6b7280;
+    font-style: italic;
+}
