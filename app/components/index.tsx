@@ -3,6 +3,7 @@
 import type { FC } from 'react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Script from 'next/script'
 import produce, { setAutoFreeze } from 'immer'
 import { useBoolean, useGetState } from 'ahooks'
 import useConversation from '@/hooks/use-conversation'
@@ -39,6 +40,8 @@ const Main: FC<IMainProps> = () => {
   const [appUnavailable, setAppUnavailable] = useState<boolean>(false)
   const [isUnknownReason, setIsUnknownReason] = useState<boolean>(false)
   const [promptConfig, setPromptConfig] = useState<PromptConfig | null>(null)
+  const [gristRecord, setGristRecord] = useState<any>(null)
+  const [gristRecords, setGristRecords] = useState<any[]>([])
   const [inited, setInited] = useState<boolean>(false)
   // in mobile, show sidebar by click button
   const [isShowSidebar, { setTrue: showSidebar, setFalse: hideSidebar }] = useBoolean(false)
@@ -52,6 +55,19 @@ const Main: FC<IMainProps> = () => {
   useEffect(() => {
     if (APP_INFO?.title)
       document.title = `${APP_INFO.title} - Powered by Dify`
+
+    // Initialize Grist listeners
+    if (typeof window !== 'undefined') {
+      window.grist?.ready()
+      window.grist?.onRecord(record => {
+        setGristRecord(record)
+        setGristRecords([])
+      })
+      window.grist?.onRecords(records => {
+        setGristRecords(records)
+        setGristRecord(null)
+      })
+    }
   }, [APP_INFO?.title])
 
   // onData change thought (the produce obj). https://github.com/immerjs/immer/issues/576
@@ -657,6 +673,17 @@ const Main: FC<IMainProps> = () => {
             hasSetInputs && (
               <div className='relative grow h-[200px] pc:w-[794px] max-w-full mobile:w-full pb-[66px] mx-auto mb-3.5 overflow-hidden'>
                 <div className='h-full overflow-y-auto' ref={chatListDomRef}>
+                  {(gristRecord || gristRecords.length > 0) && (
+                    <div className="grist-data-preview p-4 mb-4 bg-gray-50 border-b">
+                      <h3 className="text-sm font-semibold mb-2">Grist Data</h3>
+                      {gristRecord && (
+                        <pre className="text-xs mb-2">{JSON.stringify(gristRecord, null, 2)}</pre>
+                      )}
+                      {gristRecords.length > 0 && (
+                        <pre className="text-xs">{JSON.stringify(gristRecords, null, 2)}</pre>
+                      )}
+                    </div>
+                  )}
                   <Chat
                     chatList={chatList}
                     onSend={handleSend}
