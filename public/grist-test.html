@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Grist Data Display</title>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+</head>
+
+<body>
+    <h2>Selected Record</h2>
+    <pre id="recordReadout">Waiting for individual record data...</pre>
+
+    <h2>All Records</h2>
+    <pre id="recordsReadout">Waiting for all records data...</pre>
+
+    <script>
+        grist.ready();
+
+        // Handle individual record
+        grist.onRecord(function (record) {
+            document.getElementById('recordReadout').innerHTML = JSON.stringify(record, null, 2);
+        });
+
+        // Handle all records
+        grist.onRecords(function (records) {
+            document.getElementById('recordsReadout').innerHTML = JSON.stringify(records, null, 2);
+        });
+    </script>
+</body>
+
+</html>
