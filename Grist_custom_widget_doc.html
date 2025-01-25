@@ -1,0 +1,191 @@
+<html>
+
+<head>
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+  <script>
+    grist.ready({ requiredAccess: 'full' });
+    console.log('Current color')
+    let selectedICP = null; // Store the selected ICP record.
+    let selectedIdea = null; // Store the selected Idea record.
+
+    // Function to display debug information in the HTML.
+    function debugLog(message) {
+      const debugElement = document.getElementById('debug-info');
+      debugElement.innerText += message + '\n'; // Append the message to the debug output.
+    }
+
+    // Clear debug information.
+    function clearDebugLog() {
+      const debugElement = document.getElementById('debug-info');
+      debugElement.innerText = ''; // Clear the debug output.
+    }
+
+    // Fetch data from the ICP table and populate the ICP dropdown.
+    grist.onRecords(icpTable => {
+      const icpDropdown = document.getElementById('icp-dropdown');
+      icpDropdown.innerHTML = '<option value="">-- Select ICP --</option>';
+
+      icpTable.forEach(record => {
+        const option = document.createElement('option');
+        option.value = record.id; // Use the record ID as the value.
+        option.text = record.ICP_name; // Use the "ICP_name" field for the dropdown text.
+        icpDropdown.appendChild(option);
+      });
+
+      // Handle ICP dropdown selection.
+      icpDropdown.addEventListener('change', (event) => {
+        clearDebugLog(); // Clear previous debug logs.
+        const selectedId = Number(event.target.value); // Convert to number if necessary.
+        selectedICP = icpTable.find(record => record.id === selectedId);
+        debugLog(`Selected ICP: ${selectedICP.ICP_name}`); // Debug: Log the selected ICP.
+        debugLog(`Selected ICP Details: ${JSON.stringify(selectedICP, null, 2)}`); // Debug: Log the selected ICP details.
+      });
+    });
+
+    // Function to fetch data from the "Ideas" table and populate the Idea dropdown.
+    async function fetchAndPopulateIdeas() {
+      try {
+        // Fetch all records from the "Ideas" table.
+        const columnData = await grist.docApi.fetchTable('Ideas');
+
+        // Transform column-oriented data into row-oriented data.
+        const ideasTable = transformTableData(columnData);
+
+        const ideaDropdown = document.getElementById('idea-dropdown');
+        ideaDropdown.innerHTML = '<option value="">-- Select Idea --</option>';
+
+        ideasTable.forEach(idea => {
+          const option = document.createElement('option');
+          option.value = idea.id; // Use the record ID as the value.
+          option.text = idea.Idea_name; // Use the "Idea_name" field for the dropdown text.
+          ideaDropdown.appendChild(option);
+        });
+
+        // Handle Idea dropdown selection.
+        ideaDropdown.addEventListener('change', (event) => {
+          clearDebugLog(); // Clear previous debug logs.
+          const selectedId = Number(event.target.value); // Convert to number if necessary.
+          selectedIdea = ideasTable.find(idea => idea.id === selectedId);
+          debugLog(`Selected Idea: ${selectedIdea.Idea_name}`); // Debug: Log the selected Idea.
+          debugLog(`Selected Idea Details: ${JSON.stringify(selectedIdea, null, 2)}`); // Debug: Log the selected Idea details.
+        });
+      } catch (error) {
+        debugLog(`Error fetching ideas table: ${error.message}`); // Debug: Log the error.
+      }
+    }
+
+    // Function to transform column-oriented data into row-oriented data.
+    function transformTableData(columnData) {
+      const rows = [];
+      const columns = Object.keys(columnData);
+      const rowCount = columnData[columns[0]].length; // Number of rows.
+
+      for (let i = 0; i < rowCount; i++) {
+        const row = {};
+        columns.forEach(column => {
+          row[column] = columnData[column][i]; // Add each column's value to the row.
+        });
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    // Fetch and populate the Idea dropdown when the widget loads.
+    fetchAndPopulateIdeas();
+
+    // Add a button click handler to call the API.
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('call-api-button').addEventListener('click', async () => {
+        if (!selectedICP || !selectedIdea) {
+          alert("Please select both an ICP and an Idea.");
+          return;
+        }
+
+        clearDebugLog(); // Clear previous debug logs.
+
+        // Get the value of the notes textarea.
+        const notes = document.getElementById('notes').value;
+        debugLog(`Notes: ${notes}`); // Debug: Log the notes.
+
+        // Example API endpoint (replace with your actual API URL).
+        const apiUrl = 'https://jsonplaceholder.typicode.com/posts';
+
+        // Example API request body (replace with your actual request data).
+        const requestBody = {
+          icpId: selectedICP.id,
+          icpName: selectedICP.ICP_name,
+          icpDescription: selectedICP.description,
+          ideaId: selectedIdea.id,
+          ideaName: selectedIdea.Idea_name,
+          ideaExample: selectedIdea.Example,
+          notes: notes, // Include the notes in the payload.
+        };
+
+        debugLog(`API Request Body: ${JSON.stringify(requestBody, null, 2)}`); // Debug: Log the API request body.
+
+        try {
+          // Call the API using fetch.
+          const response = await fetch(apiUrl, {
+            method: 'POST', // Use GET, POST, PUT, etc., as needed.
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (!response.ok) {
+            throw new Error(`API request failed: ${response.status}`);
+          }
+
+          const data = await response.json();
+          debugLog(`API Response: ${JSON.stringify(data, null, 2)}`); // Debug: Log the API response.
+
+          // Display the API response in the HTML.
+          document.getElementById('api-response').innerText = JSON.stringify(data, null, 2);
+        } catch (error) {
+          debugLog(`Error calling API: ${error.message}`); // Debug: Log the error.
+          document.getElementById('api-response').innerText = `Error: ${error.message}`;
+        }
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div style="font-family: sans-serif; padding: 1em;">
+    <h2>AI content creator</h2>
+
+    <!-- ICP Dropdown -->
+    <label for="icp-dropdown">Select an ICP:</label>
+    <select id="icp-dropdown">
+      <option value="">-- Select ICP --</option>
+    </select>
+    <br><br>
+
+    <!-- Idea Dropdown -->
+    <label for="idea-dropdown">Select an Idea:</label>
+    <select id="idea-dropdown">
+      <option value="">-- Select Idea --</option>
+    </select>
+    <br><br>
+
+    <!-- Notes Textarea -->
+    <label for="notes">Notes:</label><br>
+    <textarea id="notes" rows="4" cols="50" placeholder="Add more directions..."></textarea>
+    <br><br>
+
+    <!-- Create content -->
+    <button id="call-api-button">Create Content</button>
+
+    <!-- API Response -->
+    <h3>API Response</h3>
+    <pre id="api-response"></pre>
+
+    <!-- Debug Information -->
+    <h3>Debug Information</h3>
+    <pre id="debug-info"></pre>
+  </div>
+</body>
+
+</html>
